@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tomografia · Sistema de Exames</title>
+<meta name="description" content="Sistema de registro de exames de tomografia com numeração sequencial mensal, controle de período 07:00–07:00 e relatórios em PDF e Excel.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0e13'/%3E%3Cpath d='M4 17h5l2.5-7 4.5 14 3.5-9 1.8 2h6.7' fill='none' stroke='%2300f0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="starfield" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="container topbar-inner">
+    <img class="brand-logo" src="assets/logo.png" alt="Prefeitura de São Gonçalo · PSC — Pronto Socorro Central Dr. Armando Gomes de Sá Couto">
+    <div class="brand-text">
+      <h1>Sistema de Exames de Tomografia</h1>
+      <p class="eyebrow">Digital Lightbox · Precisão Diagnóstica</p>
+    </div>
+    <button type="button" class="btn btn-amber btn-reset" id="btnResetSeq">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36M3 4v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Zerar<br>Sequencial</span>
+    </button>
+  </div>
+</header>
+
+<div class="daybar">
+  <div class="container daybar-inner">
+    <div class="daybar-label">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Técnicos do dia</span>
+    </div>
+    <div class="chips" id="dayTechs"></div>
+  </div>
+</div>
+
+<main class="container main">
+
+  <section class="grid-top">
+    <section class="card form-card">
+      <div class="form-head">
+        <div>
+          <p class="eyebrow accent">Registro</p>
+          <h2>Novo Exame</h2>
+        </div>
+        <div class="seq-box" title="Próximo número sequencial do mês selecionado">
+          <p class="eyebrow">Nº Seq.</p>
+          <div class="seq-value" id="nextSeq">#1</div>
+        </div>
+      </div>
+
+      <form id="examForm" autocomplete="off" novalidate>
+        <div class="field">
+          <label for="tech">Técnicos do plantão</label>
+          <input id="tech" name="tech" type="text" placeholder="Digite o nome do técnico" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="examDate">Data do exame</label>
+            <input id="examDate" name="examDate" type="date" required>
+          </div>
+          <div class="field">
+            <label for="regTime">Hora do registro</label>
+            <div class="time-readonly" id="regTime">--:--</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="bam">Número BAM</label>
+          <input id="bam" name="bam" type="text" placeholder="Número de identificação" required>
+        </div>
+
+        <div class="field">
+          <label for="patient">Nome do paciente</label>
+          <input id="patient" name="patient" type="text" placeholder="Nome completo" required>
+        </div>
+
+        <div class="field">
+          <label>Tipo de paciente</label>
+          <div class="seg" id="ptype">
+            <button type="button" class="seg-btn" data-type="internado">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M10 10h.01M14 10h.01M10 13h.01M14 13h.01" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Internado
+            </button>
+            <button type="button" class="seg-btn" data-type="emergencia">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0ZM12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Emergência
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <label>Exames</label>
+            <button type="button" class="btn btn-cyan-ghost" id="btnAddExam">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              Adicionar Exame
+            </button>
+          </div>
+          <div id="examRows" class="exam-rows"></div>
+        </div>
+
+        <div class="field">
+          <label for="notes">Observações (opcional)</label>
+          <textarea id="notes" name="notes" rows="2" placeholder="Adicione observações sobre o exame"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Registrar Exame</button>
+      </form>
+    </section>
+
+    <aside class="stats">
+      <div class="card stat-card">
+        <div class="stat-icon cyan">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <p class="eyebrow">Total de exames</p>
+        <div class="stat-value cyan" id="statTotal">0</div>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-icon amber">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <p class="eyebrow">Período atual (07:00–07:00)</p>
+        <div class="stat-value amber" id="statPeriod">0</div>
+      </div>
+
+      <div class="card stat-card">
+        <p class="eyebrow">Exames mais frequentes</p>
+        <div class="mini-list" id="statTypes"></div>
+      </div>
+
+      <div class="card stat-card">
+        <p class="eyebrow">Pacientes do período</p>
+        <div class="mini-list patients" id="statPatients"></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="card list-card">
+    <div class="list-toolbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input id="search" type="text" placeholder="Buscar por paciente, BAM, técnico ou tipo de exame...">
+      </div>
+      <button type="button" class="btn btn-outline" id="btnToggleAll">Ver Todos os Exames</button>
+    </div>
+
+    <div class="list-head">
+      <h2 id="listTitle">Exames do Período Atual (07:00 às 07:00)</h2>
+      <p class="list-sub" id="listCount">Mostrando 0 de 0 registros</p>
+    </div>
+
+    <div class="records" id="records"></div>
+
+    <div class="list-more hidden" id="listMoreWrap">
+      <button type="button" class="btn btn-outline-cyan" id="btnMore">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Carregar Mais 50 Exames
+      </button>
+    </div>
+  </section>
+
+  <section class="reports">
+    <div class="card report-card">
+      <div class="report-head">
+        <span class="sq-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <div>
+          <h3>Relatório por Período Diário</h3>
+          <p>Período de 07:00 às 07:00 do dia seguinte</p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="repDay">Data</label>
+        <input id="repDay" type="date">
+      </div>
+      <p class="report-note" id="repDayNote">0 exames no período</p>
+      <div class="report-actions">
+        <button type="button" class="btn btn-outline-cyan" data-export="day-pdf">PDF</button>
+        <button type="button" class="btn btn-outline-cyan" data-export="day-xlsx">Excel</button>
+      </div>
+    </div>
+
+    <div class="card report-card">
+      <div class="report-head">
+        <span class="sq-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 3v4M16 3v4M3 10h18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <h3>Relatório por Intervalo</h3>
+          <p>Exames por data do exame</p>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="repStart">Início</label>
+          <input id="repStart" type="date">
+        </div>
+        <div class="field">
+          <label for="repEnd">Fim</label>
+          <input id="repEnd" type="date">
+        </div>
+      </div>
+      <p class="report-note" id="repRangeNote">0 exames no período</p>
+      <div class="report-actions">
+        <button type="button" class="btn btn-outline-cyan" data-export="range-pdf">PDF</button>
+        <button type="button" class="btn btn-outline-cyan" data-export="range-xlsx">Excel</button>
+      </div>
+    </div>
+
+    <div class="card report-card">
+      <div class="report-head">
+        <span class="sq-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v14H4zM8 3v4M16 3v4M4 11h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 15h2M14 15h2M8 18h2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <h3>Relatório Mensal</h3>
+          <p>Mês completo, dia a dia, com resumos</p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="repMonth">Mês</label>
+        <input id="repMonth" type="month">
+      </div>
+      <p class="report-note" id="repMonthNote">0 exames no mês</p>
+      <div class="report-actions">
+        <button type="button" class="btn btn-outline-cyan" data-export="month-pdf">PDF</button>
+        <button type="button" class="btn btn-outline-cyan" data-export="month-xlsx">Excel</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="charts">
+    <div class="charts-head">
+      <div class="charts-title">
+        <span class="sq-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <h2>Análise Detalhada de Dados</h2>
+          <p>Todos os detalhes do mês selecionado</p>
+        </div>
+      </div>
+      <div class="month-pick">
+        <label for="chartMonth">Mês de referência</label>
+        <input id="chartMonth" type="month">
+      </div>
+    </div>
+
+    <div class="kpis" id="chartKpis"></div>
+
+    <div class="charts-grid">
+      <div class="card chart-card wide">
+        <div class="chart-head">
+          <div>
+            <h3>Tendência de Exames</h3>
+            <p>Distribuição por data</p>
+          </div>
+          <span class="chart-tag" id="tagDaily">—</span>
+        </div>
+        <div class="chart-wrap tall"><canvas id="chartDaily"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Distribuição por Tipo de Exame</h3>
+            <p>Top 10 tipos</p>
+          </div>
+        </div>
+        <div class="chart-wrap doughnut"><canvas id="chartTypes"></canvas></div>
+        <div class="chart-legend" id="legendTypes"></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Exames por Técnico</h3>
+            <p>Movimento do mês</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chartTechs"></canvas></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Tipo de Paciente</h3>
+            <p>Internado x Emergência</p>
+          </div>
+        </div>
+        <div class="chart-wrap doughnut"><canvas id="chartPtype"></canvas></div>
+        <div class="chart-legend" id="legendPtype"></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Pacientes com Mais Exames</h3>
+            <p>Top 8 do mês</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chartPatients"></canvas></div>
+      </div>
+
+      <div class="card chart-card wide">
+        <div class="chart-head">
+          <div>
+            <h3>Distribuição por Hora</h3>
+            <p>Janelas de 07:00 às 07:00</p>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chartHours"></canvas></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p>Sistema de Exames de Tomografia · Arquitetura da Claridade Radial</p>
+    <p><strong id="footTotal">0</strong> exames arquivados</p>
+  </div>
+</footer>
+
+<div id="modalRoot"></div>
+<div id="toastRoot" class="toast-root" aria-live="polite"></div>
+
+<script src="assets/vendor/chart.umd.min.js"></script>
+<script src="assets/vendor/jspdf.umd.min.js"></script>
+<script src="assets/vendor/jspdf.plugin.autotable.min.js"></script>
+<script src="assets/vendor/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
