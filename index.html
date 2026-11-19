@@ -67,14 +67,15 @@
           </div>
         </div>
 
-        <div class="field">
-          <label for="bam">Número BAM</label>
-          <input id="bam" name="bam" type="text" placeholder="Número de identificação" required>
-        </div>
-
-        <div class="field">
-          <label for="patient">Nome do paciente</label>
-          <input id="patient" name="patient" type="text" placeholder="Nome completo" required>
+        <div class="field-row wide">
+          <div class="field">
+            <label for="bam">Número BAM</label>
+            <input id="bam" name="bam" type="text" placeholder="Número de identificação" required>
+          </div>
+          <div class="field">
+            <label for="patient">Nome do paciente</label>
+            <input id="patient" name="patient" type="text" placeholder="Nome completo" required>
+          </div>
         </div>
 
         <div class="field">
@@ -253,6 +254,14 @@
     </div>
 
     <div class="kpis" id="chartKpis"></div>
+
+    <div class="card charts-empty hidden" id="chartsEmpty">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div>
+        <h3>Sem dados neste mês</h3>
+        <p>Os gráficos aparecem automaticamente quando houver exames registrados no mês selecionado.</p>
+      </div>
+    </div>
 
     <div class="charts-grid">
       <div class="card chart-card wide">

@@ -1289,19 +1289,22 @@
     ['chartDaily', 'chartTypes', 'chartTechs', 'chartPtype', 'chartPatients', 'chartHours']
       .forEach(id => destroyChart(id));
 
+    const chartsGrid = document.querySelector('.charts-grid');
     if (!total) {
-      ['chartDaily', 'chartTypes', 'chartTechs', 'chartPtype', 'chartPatients', 'chartHours']
-        .forEach(id => chartPlaceholder(id, true, 'Sem exames registrados neste mês.'));
+      chartsGrid.classList.add('hidden');
+      $('#chartsEmpty').classList.remove('hidden');
       $('#legendTypes').innerHTML = '';
       $('#legendPtype').innerHTML = '';
       return;
     }
+    chartsGrid.classList.remove('hidden');
+    $('#chartsEmpty').classList.add('hidden');
 
     ['chartDaily', 'chartTypes', 'chartTechs', 'chartPtype', 'chartPatients', 'chartHours']
       .forEach(id => chartPlaceholder(id, false, ''));
 
     Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
-    Chart.defaults.font.size = 9.5;
+    Chart.defaults.font.size = 12;
     Chart.defaults.color = '#5f6c7d';
 
     /* ---- daily line ---- */
@@ -1421,7 +1424,7 @@
           backgroundColor: 'rgba(0,240,255,0.5)',
           hoverBackgroundColor: 'rgba(0,240,255,0.75)',
           borderRadius: 4,
-          barThickness: 15
+          barThickness: 18
         }]
       },
       options: {
@@ -1517,7 +1520,7 @@
           backgroundColor: 'rgba(245,165,36,0.5)',
           hoverBackgroundColor: 'rgba(245,165,36,0.75)',
           borderRadius: 4,
-          barThickness: 15
+          barThickness: 18
         }]
       },
       options: {
@@ -1582,7 +1585,7 @@
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#5f6c7d', font: { size: 8.5 } }
+            ticks: { color: '#5f6c7d', font: { size: 10 } }
           },
           y: {
             beginAtZero: true,
