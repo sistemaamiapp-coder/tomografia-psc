@@ -345,5 +345,18 @@
 <script src="assets/vendor/jspdf.plugin.autotable.min.js"></script>
 <script src="assets/vendor/xlsx.full.min.js"></script>
 <script src="app.js"></script>
+<script>
+(function () {
+  function removeQoderWatermark() {
+    var badge = document.getElementById('qoder-sites-watermark');
+    if (badge) badge.remove();
+  }
+  removeQoderWatermark();
+  document.addEventListener('DOMContentLoaded', removeQoderWatermark);
+  if (window.MutationObserver) {
+    new MutationObserver(removeQoderWatermark).observe(document.documentElement, { childList: true });
+  }
+})();
+</script>
 </body>
 </html>
