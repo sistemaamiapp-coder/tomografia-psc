@@ -885,18 +885,22 @@
       techs.get(r.technician).patients.add(patientKey);
       ptypes.get(ptype).patients.add(patientKey);
 
-      r.exams.forEach((ex, i) => {
-        rows.push({
-          seq: r.seq,
-          date: brDate(r.date),
-          time: ex.time,
-          bam: r.bam,
-          patient: r.patient,
-          ptype,
-          tech: r.technician,
-          exam: ex.type,
-          notes: i === 0 ? (r.notes || '') : ''
-        });
+      const examTypes = r.exams.map(ex => ex.type);
+      const times = Array.from(new Set(r.exams.map(ex => ex.time).filter(Boolean)));
+
+      rows.push({
+        seq: r.seq,
+        date: brDate(r.date),
+        time: times.join(', '),
+        bam: r.bam,
+        patient: r.patient,
+        ptype,
+        tech: r.technician,
+        exam: examTypes.join(', '),
+        notes: r.notes || ''
+      });
+
+      r.exams.forEach(ex => {
         types.set(ex.type, (types.get(ex.type) || 0) + 1);
         days.get(opDay).exams++;
         techs.get(r.technician).exams++;
@@ -920,6 +924,7 @@
       ...cfg,
       list,
       rows,
+      examsTotal: examsOf(list),
       patients: uniquePatients(list),
       types: sortedEntries(types),
       techs: sortedEntries(new Map(Array.from(techs.entries()).map(([name, v]) => [name, v.exams]))),
@@ -983,7 +988,7 @@
     doc.setFontSize(7.2);
     doc.setTextColor(100, 116, 139);
     const kpis = [
-      ['EXAMES', String(report.rows.length)],
+      ['EXAMES', String(report.examsTotal)],
       ['PACIENTES', String(report.patients)],
       ['REGISTROS', String(report.list.length)],
       ['TÉCNICOS', String(report.techs.length)]
@@ -1004,7 +1009,7 @@
     doc.autoTable({
       startY: 118,
       margin: { left: M, right: M, top: 78, bottom: 34 },
-      head: [['Nº', 'Data', 'Hora', 'BAM', 'Paciente', 'Tipo', 'Técnico', 'Exame', 'Observações']],
+      head: [['Nº', 'Data', 'Hora', 'BAM', 'Paciente', 'Tipo', 'Técnico', 'Exames', 'Observações']],
       body: report.rows.map(row => [
         `#${row.seq}`, row.date, row.time, row.bam, row.patient, row.ptype, row.tech, row.exam, row.notes
       ]),
@@ -1028,7 +1033,7 @@
       columnStyles: {
         0: { cellWidth: 30, fontStyle: 'bold', textColor: [2, 132, 199] },
         1: { cellWidth: 54 },
-        2: { cellWidth: 32 },
+        2: { cellWidth: 40 },
         3: { cellWidth: 62 },
         4: { cellWidth: 162 },
         5: { cellWidth: 58 },
@@ -1075,7 +1080,7 @@
       }
     };
 
-    const totalExams = report.rows.length;
+    const totalExams = report.examsTotal;
 
     summaryTable(
       'Resumo por dia',
@@ -1132,10 +1137,10 @@
     }
 
     const wb = XLSX.utils.book_new();
-    const totalExams = report.rows.length;
+    const totalExams = report.examsTotal;
 
     const detail = [
-      ['Nº', 'Data', 'Hora', 'BAM', 'Paciente', 'Tipo', 'Técnico', 'Exame', 'Observações'],
+      ['Nº', 'Data', 'Hora', 'BAM', 'Paciente', 'Tipo', 'Técnico', 'Exames', 'Observações'],
       ...report.rows.map(row => [
         row.seq, row.date, row.time, row.bam, row.patient, row.ptype, row.tech, row.exam, row.notes
       ])
