@@ -230,17 +230,23 @@
   function monthOf(iso) { return iso.slice(0, 7); }
 
   function nextSeqFor(month) {
+    const used = new Set(records.filter(r => monthOf(r.date) === month).map(r => r.seq));
     const stored = config.seqCounters[month];
-    if (Number.isFinite(stored)) return stored;
-    let max = 0;
-    records.forEach(r => {
-      if (monthOf(r.date) === month && r.seq > max) max = r.seq;
-    });
-    return max + 1;
+    let next = 1;
+    if (Number.isFinite(stored)) {
+      next = stored;
+    } else {
+      while (used.has(next)) next++;
+    }
+    for (let n = 1; n < next; n++) {
+      if (!used.has(n)) return n;
+    }
+    return next;
   }
 
   function bumpSeq(month, seq) {
-    config.seqCounters[month] = seq + 1;
+    const stored = config.seqCounters[month];
+    config.seqCounters[month] = Math.max(Number.isFinite(stored) ? stored : 1, seq + 1);
     saveConfig();
   }
 
@@ -744,7 +750,7 @@
       eyebrow: `Registro #${r.seq}`,
       title: 'Excluir Registro',
       message: `Excluir o registro <strong>#${r.seq}</strong> de <strong>${esc(r.patient)}</strong>? ${plural(r.exams.length, 'exame será removido', 'exames serão removidos')} junto com o registro.`,
-      warning: 'Esta ação não pode ser desfeita. O número sequencial não será reutilizado automaticamente.',
+      warning: 'Esta ação não pode ser desfeita. O número sequencial será liberado e reutilizado automaticamente pelo próximo registro.',
       confirmLabel: 'Excluir Registro',
       onConfirm: () => {
         records = records.filter(item => item.id !== id);
