@@ -14,16 +14,26 @@
   const PAGE_SIZE = 25;
   const LOAD_MORE = 50;
 
-  const EXAM_TYPES = [
-    'Abdome superior', 'Arco costais', 'Bacia', 'Coluna cervical', 'Coluna dorsal',
-    'Coluna lombar', 'Crânio', 'Face', 'Mastoides', 'Mandíbula', 'Ossos da face',
-    'Pelve', 'Pescoço', 'Sela túrcica', 'Tórax',
-    'Antebraço (direito)', 'Antebraço (esquerdo)', 'Braço (direito)', 'Braço (esquerdo)',
-    'Cotovelo (direito)', 'Cotovelo (esquerdo)', 'Fêmur (direito)', 'Fêmur (esquerdo)',
-    'Joelho (direito)', 'Joelho (esquerdo)', 'Mão (direita)', 'Mão (esquerda)',
-    'Ombro (direito)', 'Ombro (esquerdo)', 'Pé (direito)', 'Pé (esquerdo)',
-    'Perna (direita)', 'Perna (esquerda)', 'Punho (direito)', 'Punho (esquerdo)',
-    'Quadril (direito)', 'Quadril (esquerdo)', 'Tornozelo (direito)', 'Tornozelo (esquerdo)'
+  const EXAM_GROUPS = [
+    {
+      label: 'Exames Unilaterais',
+      types: [
+        'Abdome superior', 'Arco costais', 'Bacia', 'Coluna cervical', 'Coluna dorsal',
+        'Coluna lombar', 'Crânio', 'Face', 'Mastoides', 'Mandíbula', 'Ossos da face',
+        'Pelve', 'Pescoço', 'Sela túrcica', 'Tórax'
+      ]
+    },
+    {
+      label: 'Exames Bilaterais',
+      types: [
+        'Antebraço (direito)', 'Antebraço (esquerdo)', 'Braço (direito)', 'Braço (esquerdo)',
+        'Cotovelo (direito)', 'Cotovelo (esquerdo)', 'Fêmur (direito)', 'Fêmur (esquerdo)',
+        'Joelho (direito)', 'Joelho (esquerdo)', 'Mão (direita)', 'Mão (esquerda)',
+        'Ombro (direito)', 'Ombro (esquerdo)', 'Pé (direito)', 'Pé (esquerdo)',
+        'Perna (direita)', 'Perna (esquerda)', 'Punho (direito)', 'Punho (esquerdo)',
+        'Quadril (direito)', 'Quadril (esquerdo)', 'Tornozelo (direito)', 'Tornozelo (esquerdo)'
+      ]
+    }
   ];
 
   const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
@@ -333,7 +343,10 @@
       </div>
       <select aria-label="Tipo de exame">
         <option value="">Selecione o tipo</option>
-        ${EXAM_TYPES.map(t => `<option value="${esc(t)}"${t === value ? ' selected' : ''}>${esc(t)}</option>`).join('')}
+        ${EXAM_GROUPS.map(g => `
+          <optgroup label="${esc(g.label)}">
+            ${g.types.map(t => `<option value="${esc(t)}"${t === value ? ' selected' : ''}>${esc(t)}</option>`).join('')}
+          </optgroup>`).join('')}
       </select>
     `;
     return row;
